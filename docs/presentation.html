@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>GitHub Trends Watch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0d1117;--panel:#161b22;--panel2:#21262d;--line:#30363d;--text:#c9d1d9;--muted:#8b949e;--blue:#58a6ff;--green:#3fb950;--purple:#bc8cff;--orange:#d29922;--pink:#f778ba}
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif}
+    body{background-image:radial-gradient(circle at 85% 15%,rgba(88,166,255,.11),transparent 30%),radial-gradient(circle at 15% 85%,rgba(188,140,255,.08),transparent 28%)}
+    .deck{display:flex;width:2000vw;height:100vh;transition:transform .55s cubic-bezier(.22,.8,.28,1);will-change:transform}
+    .slide{width:100vw;height:100vh;flex:none;padding:clamp(3rem,7vw,7rem) clamp(2rem,9vw,9rem);display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+    .slide:before{content:"";position:absolute;inset:2rem;border:1px solid rgba(88,166,255,.08);border-radius:24px;pointer-events:none}
+    .eyebrow{color:var(--blue);font-size:.78rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;margin-bottom:1rem}
+    h1{font-size:clamp(3rem,8vw,7rem);line-height:.98;margin:0 0 1.5rem;color:#f0f6fc;letter-spacing:-.055em}
+    h2{font-size:clamp(2rem,4.5vw,4.2rem);line-height:1.05;margin:0 0 2rem;color:var(--blue);letter-spacing:-.04em}
+    h3{color:#f0f6fc;margin:.2rem 0 .7rem;font-size:clamp(1rem,1.5vw,1.3rem)}
+    p{font-size:clamp(1rem,1.6vw,1.35rem);line-height:1.65;margin:.4rem 0;color:var(--muted)}
+    .lead{font-size:clamp(1.25rem,2.3vw,2rem);max-width:850px}
+    .accent{color:var(--blue)} .bright{color:#f0f6fc} .green{color:var(--green)}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(.7rem,1.7vw,1.4rem);width:100%}
+    .grid.two{grid-template-columns:repeat(2,1fr)} .grid.four{grid-template-columns:repeat(4,1fr)}
+    .card{background:linear-gradient(145deg,rgba(33,38,45,.93),rgba(22,27,34,.93));border:1px solid var(--line);border-radius:16px;padding:clamp(1rem,2vw,1.7rem);box-shadow:0 12px 35px rgba(0,0,0,.18)}
+    .card .icon{font-size:1.8rem;margin-bottom:.5rem}.card p{font-size:clamp(.83rem,1.2vw,1rem);line-height:1.5}
+    .chip{display:inline-flex;align-items:center;padding:.55rem .9rem;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:clamp(.76rem,1vw,.92rem);font-weight:600;margin:.28rem}
+    .chips{display:flex;flex-wrap:wrap;gap:.3rem}
+    .flow{display:flex;align-items:stretch;justify-content:center;gap:.55rem;width:100%}
+    .flow-step{flex:1;min-width:0;text-align:center;padding:1.25rem .6rem;background:var(--panel);border:1px solid var(--line);border-radius:14px;color:#f0f6fc;font-weight:700}
+    .flow-step span{display:block;color:var(--blue);font-size:1.45rem;margin-bottom:.55rem}.arrow{align-self:center;color:var(--blue);font-size:1.6rem}
+    .bar-row{display:grid;grid-template-columns:minmax(140px,1.5fr) 5fr 55px;align-items:center;gap:1rem;margin:.8rem 0;font-weight:600}
+    .bar-track{height:15px;background:var(--panel2);border-radius:20px;overflow:hidden}.bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--blue),var(--purple))}
+    .tiers{display:flex;gap:1rem;width:100%}.tier{flex:1;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:1.4rem .7rem}.badge{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:white;font-size:2rem;font-weight:800;margin:0 auto .8rem;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+    .timeline{display:flex;align-items:center;width:100%;margin-top:1rem}.milestone{flex:1;text-align:center;position:relative}.milestone:before{content:"";display:block;height:4px;background:linear-gradient(90deg,var(--blue),var(--purple));margin-bottom:1.2rem}.dot{width:20px;height:20px;background:var(--blue);border:4px solid var(--bg);box-shadow:0 0 0 2px var(--blue);border-radius:50%;position:absolute;top:-8px;left:calc(50% - 10px)}
+    .mock-email{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.35)}.email-head{padding:1.1rem 1.4rem;background:linear-gradient(110deg,#1f6feb,#8957e5);color:white;font-weight:800}.email-body{padding:1rem;display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}.email-block{min-height:65px;border-radius:8px;background:var(--panel2);border:1px solid var(--line);padding:.65rem;color:var(--muted);font-size:.8rem}.email-block.wide{grid-column:span 3}
+    .tabs{display:flex;gap:.4rem;border-bottom:1px solid var(--line);margin-bottom:1rem}.tab{padding:.8rem 1.1rem;color:var(--muted)}.tab.active{color:var(--blue);border-bottom:2px solid var(--blue)}
+    .mode{display:flex;align-items:center;gap:1.2rem}.mode code{color:var(--blue);background:#0d1117;padding:.5rem .8rem;border-radius:8px;border:1px solid var(--line)}
+    .steps{counter-reset:steps;display:grid;gap:.8rem}.step{counter-increment:steps;display:flex;align-items:center;gap:1rem;background:var(--panel);border:1px solid var(--line);padding:1rem 1.2rem;border-radius:14px}.step:before{content:counter(steps);display:grid;place-items:center;width:38px;height:38px;flex:none;border-radius:50%;background:var(--blue);color:#07111f;font-weight:800}
+    .nav{position:fixed;z-index:10;top:50%;transform:translateY(-50%);width:48px;height:48px;border-radius:50%;border:1px solid var(--line);background:rgba(22,27,34,.88);color:#f0f6fc;font-size:2rem;line-height:1;cursor:pointer;backdrop-filter:blur(10px);transition:.2s}.nav:hover{background:var(--blue);color:#07111f;transform:translateY(-50%) scale(1.08)}.prev{left:1rem}.next{right:1rem}.nav[hidden]{display:none}
+    .progress{position:fixed;z-index:11;bottom:0;left:0;width:100%;height:5px;background:var(--panel2)}.progress-fill{height:100%;width:5%;background:linear-gradient(90deg,var(--blue),var(--purple),var(--pink));transition:width .5s ease}
+    .counter{position:fixed;z-index:11;right:1.2rem;bottom:1rem;color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+    .swipe-hint{position:absolute;bottom:2.6rem;left:50%;transform:translateX(-50%);color:var(--muted);font-size:.8rem;animation:pulse 1.8s infinite;white-space:nowrap;transition:opacity .3s}@keyframes pulse{50%{opacity:.35;transform:translateX(-50%) translateY(4px)}}
+    .kicker{display:inline-flex;gap:.5rem;align-items:center;color:var(--green);font-weight:700}.kicker:before{content:"";width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}
+    .footer-note{position:absolute;bottom:3rem;color:var(--muted);font-size:.78rem}a{color:var(--blue)}
+    @media(max-width:760px){.slide{padding:4.5rem 2.2rem}.slide:before{inset:1rem}.grid,.grid.two,.grid.four{grid-template-columns:1fr;max-height:65vh;overflow:auto}.flow{display:grid;grid-template-columns:1fr 1fr}.arrow{display:none}.tiers{display:grid;grid-template-columns:repeat(2,1fr);overflow:auto}.tier{padding:.65rem}.badge{width:42px;height:42px;font-size:1.3rem}.timeline{display:grid;grid-template-columns:1fr}.milestone{text-align:left;padding:.35rem}.milestone:before,.dot{display:none}.nav{width:40px;height:40px}.prev{left:.4rem}.next{right:.4rem}.bar-row{grid-template-columns:110px 1fr 40px;gap:.5rem}.chips{max-height:48vh;overflow:auto}.email-body{grid-template-columns:1fr}.email-block.wide{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main class="deck" id="deck">
+    <section class="slide"><div class="eyebrow">Open-source intelligence, automated</div><h1>GitHub<br><span class="accent">Trends Watch</span></h1><p class="lead">Automated GitHub Trending Analysis &amp; Reporting</p><p class="kicker">Daniel Liezrowice-Zuwasi | ESL | 2026</p><div class="swipe-hint" id="swipeHint">← Swipe to navigate →</div></section>
+    <section class="slide"><div class="eyebrow">01 · The Problem</div><h2>Trending moves fast.<br>You should not have to.</h2><div class="grid"><div class="card"><div class="icon">⏳</div><h3>Tedious checks</h3><p>Manual browsing is repetitive, time-consuming, and easy to postpone.</p></div><div class="card"><div class="icon">📉</div><h3>Missed signals</h3><p>Promising repositories rise and disappear before your next visit.</p></div><div class="card"><div class="icon">🧩</div><h3>No context</h3><p>A snapshot provides no scoring, deeper analysis, or searchable history.</p></div></div></section>
+    <section class="slide"><div class="eyebrow">02 · The Solution</div><h2>One automated intelligence pipeline</h2><p class="lead">GitHub Trends Watch transforms a noisy feed into a focused, scored, agent-analyzed report—delivered on your schedule.</p><div class="grid four" style="margin-top:2rem"><div class="card"><h3>01 · Scrape</h3><p>Capture current trending repositories.</p></div><div class="card"><h3>02 · Rate</h3><p>Score quality, growth, and signals.</p></div><div class="card"><h3>03 · Analyze</h3><p>Add insight from your preferred agent.</p></div><div class="card"><h3>04 · Report</h3><p>Visualize and deliver by email.</p></div></div></section>
+    <section class="slide"><div class="eyebrow">03 · How It Works</div><h2>From trend to inbox</h2><div class="flow"><div class="flow-step"><span>◎</span>Scrape</div><div class="arrow">→</div><div class="flow-step"><span>⌁</span>Filter</div><div class="arrow">→</div><div class="flow-step"><span>★</span>Rate &amp;<br>Classify</div><div class="arrow">→</div><div class="flow-step"><span>✦</span>Agent<br>Analysis</div><div class="arrow">→</div><div class="flow-step"><span>▥</span>Charts</div><div class="arrow">→</div><div class="flow-step"><span>✉</span>Email</div></div><p style="text-align:center;margin-top:2rem">A repeatable workflow with local history at every run.</p></section>
+    <section class="slide"><div class="eyebrow">04 · Scheduling</div><h2>Your cadence, your choice</h2><div class="grid"><div class="card"><div class="icon">☀️</div><h3>Daily</h3><p>Stay on top of fast-moving projects.</p></div><div class="card"><div class="icon">📅</div><h3>Weekly</h3><p>A concise recurring digest.</p></div><div class="card"><div class="icon">⚙️</div><h3>Custom interval</h3><p>Every 1–30 days or every 1–30 weeks.</p></div></div><div class="card" style="margin-top:1rem;text-align:center"><span class="chip" style="border-color:var(--blue);color:var(--blue)">▶ Check now</span><p>Run a one-off report instantly—without changing the schedule.</p></div></section>
+    <section class="slide"><div class="eyebrow">05 · Agent Detection</div><h2>Works with the tools you already use</h2><p class="lead">Installed coding agents are detected automatically. Pick the one you want from a simple dropdown.</p><div class="chips" style="margin-top:1.5rem"><span class="chip">⚡ Amp</span><span class="chip">◈ Claude Code</span><span class="chip">✦ Gemini CLI</span><span class="chip">⌘ Codex</span><span class="chip">Aider</span><span class="chip">Copilot CLI</span><span class="chip">OpenCode</span><span class="chip">Crush</span></div></section>
+    <section class="slide"><div class="eyebrow">06 · Rating System</div><h2>Overall Score <span class="bright">0–100</span></h2><div class="bar-row"><span>Popularity</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><strong>30%</strong></div><div class="bar-row"><span>Growth velocity</span><div class="bar-track"><div class="bar-fill" style="width:83%"></div></div><strong>25%</strong></div><div class="bar-row"><span>Maturity</span><div class="bar-track"><div class="bar-fill" style="width:67%"></div></div><strong>20%</strong></div><div class="bar-row"><span>Security signals</span><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><strong>15%</strong></div><div class="bar-row"><span>Community</span><div class="bar-track"><div class="bar-fill" style="width:33%"></div></div><strong>10%</strong></div><p>Community combines forks and contributor activity.</p></section>
+    <section class="slide"><div class="eyebrow">07 · Rating Tiers</div><h2>Understand quality at a glance</h2><div class="tiers"><div class="tier"><div class="badge" style="background:#e91e63">S</div><h3>85–100</h3><p>Exceptional</p></div><div class="tier"><div class="badge" style="background:#4caf50">A</div><h3>70–84</h3><p>Excellent</p></div><div class="tier"><div class="badge" style="background:#2196f3">B</div><h3>50–69</h3><p>Promising</p></div><div class="tier"><div class="badge" style="background:#ff9800">C</div><h3>30–49</h3><p>Emerging</p></div><div class="tier"><div class="badge" style="background:#9e9e9e">D</div><h3>0–29</h3><p>Early / limited</p></div></div></section>
+    <section class="slide"><div class="eyebrow">08 · Classification</div><h2>Automatic category detection</h2><p class="lead">Repository descriptions are translated into useful subject areas—without manual tagging.</p><div class="chips" style="margin-top:1.5rem"><span class="chip">🤖 AI / ML</span><span class="chip">🛡 Security</span><span class="chip">♾ DevOps</span><span class="chip">🌐 Web</span><span class="chip">▦ Data</span><span class="chip">📱 Mobile</span><span class="chip">⚙ Systems</span><span class="chip">🔧 Tools</span><span class="chip">◇ Other</span></div></section>
+    <section class="slide"><div class="eyebrow">09 · Maturity</div><h2>From experiment to institution</h2><div class="timeline"><div class="milestone"><i class="dot"></i><h3>Experimental</h3><p>&lt; 100 stars</p></div><div class="milestone"><i class="dot"></i><h3>Early-Stage</h3><p>100–999</p></div><div class="milestone"><i class="dot"></i><h3>Growing</h3><p>1K–4.9K</p></div><div class="milestone"><i class="dot"></i><h3>Mature</h3><p>5K–19.9K</p></div><div class="milestone"><i class="dot"></i><h3>Established</h3><p>20K+ stars</p></div></div></section>
+    <section class="slide"><div class="eyebrow">10 · Deeper Signals</div><h2>Innovation &amp; Security</h2><div class="grid two"><div class="card"><div class="icon">🚀</div><h3>Innovation Score</h3><p class="lead bright">Growth velocity ratio</p><p>Highlights repositories gaining attention unusually quickly relative to their existing star base.</p></div><div class="card"><div class="icon">🔐</div><h3>Security Score</h3><p class="lead bright">Evidence-based heuristic</p><p>Combines maturity, scrutiny implied by forks, and contributor diversity into a practical signal.</p></div></div></section>
+    <section class="slide"><div class="eyebrow">11 · Email Report</div><h2>Decision-ready, in your inbox</h2><div class="grid two"><div><div class="chips"><span class="chip">Gradient header</span><span class="chip">Stats bar</span><span class="chip">Rating overview</span><span class="chip">Agent analysis</span><span class="chip">Rating badges</span></div><p>Repository cards summarize the essentials. Three charts compare top stars, language share, and stars gained today.</p></div><div class="mock-email"><div class="email-head">GitHub Trends Watch · Daily Report</div><div class="email-body"><div class="email-block wide">Stats &amp; rating overview</div><div class="email-block">Top stars<br>▥▥▥</div><div class="email-block">Languages<br>◕</div><div class="email-block">Stars today<br>▥▥</div><div class="email-block wide">★ A &nbsp; Repository cards + agent analysis</div></div></div></div></section>
+    <section class="slide"><div class="eyebrow">12 · Email Providers</div><h2>Ten ready-to-use presets</h2><div class="chips"><span class="chip">Gmail</span><span class="chip">Outlook</span><span class="chip">Yahoo</span><span class="chip">iCloud</span><span class="chip">Zoho</span><span class="chip">GMX</span><span class="chip">Yandex</span><span class="chip">ProtonMail Bridge</span><span class="chip">Custom SMTP</span><span class="chip">SMTP preset</span></div><p class="lead" style="margin-top:1.5rem">Choose a provider, enter credentials, and let the app configure the connection details.</p></section>
+    <section class="slide"><div class="eyebrow">13 · Filters</div><h2>Control the signal-to-noise ratio</h2><div class="grid"><div class="card"><h3>Momentum</h3><p>Minimum total stars<br>Minimum stars today</p></div><div class="card"><h3>Scope</h3><p>Maximum repositories<br>Language filter</p></div><div class="card"><h3>Relevance</h3><p>Include / exclude keywords<br>Spoken language filter</p></div></div></section>
+    <section class="slide"><div class="eyebrow">14 · Configuration</div><h2>A focused, cross-platform GUI</h2><div class="card"><div class="tabs"><div class="tab active">Schedule</div><div class="tab">Agent</div><div class="tab">Email</div><div class="tab">Filters</div><div class="tab">Status</div></div><div class="grid two"><div><h3>Built with tkinter</h3><p>Native Python interface with no browser or web server required.</p></div><div><h3>Cross-platform</h3><p>A consistent configuration experience across desktop environments.</p></div></div></div></section>
+    <section class="slide"><div class="eyebrow">15 · Running Modes</div><h2>Three ways to run</h2><div class="grid"><div class="card mode"><span class="badge" style="background:#1f6feb">G</span><div><h3>GUI mode</h3><p>Configure visually</p><code>python main.py</code></div></div><div class="card mode"><span class="badge" style="background:#8957e5">B</span><div><h3>Background</h3><p>Scheduled daemon</p><code>--background</code></div></div><div class="card mode"><span class="badge" style="background:#238636">▶</span><div><h3>Check now</h3><p>One-shot run</p><code>--check-now</code></div></div></div></section>
+    <section class="slide"><div class="eyebrow">16 · Report History</div><h2>Every report becomes a record</h2><div class="grid two"><div class="card"><div class="icon">🗂</div><h3>Saved locally</h3><p>Review previous results, compare snapshots, and retain your own trend history.</p></div><div class="card"><div class="icon">🧹</div><h3>Automatic cleanup</h3><p>Retention is managed automatically so report storage stays under control.</p></div></div></section>
+    <section class="slide"><div class="eyebrow">17 · Getting Started</div><h2>Up and running in four steps</h2><div class="steps"><div class="step"><div><h3>Install dependencies</h3><code>pip install -r requirements.txt</code></div></div><div class="step"><div><h3>Launch</h3><code>python main.py</code></div></div><div class="step"><div><h3>Configure</h3><p>Choose schedule, agent, email, and filters.</p></div></div><div class="step"><div><h3>Start</h3><p>Enable the scheduler—or run Check now.</p></div></div></div></section>
+    <section class="slide"><div class="eyebrow">18 · Tech Stack</div><h2>Simple, proven Python tooling</h2><div class="chips"><span class="chip">Python 3.9+</span><span class="chip">tkinter</span><span class="chip">requests</span><span class="chip">BeautifulSoup4</span><span class="chip">matplotlib</span><span class="chip">smtplib</span><span class="chip">markdown</span></div><p class="lead" style="margin-top:1.5rem">A lightweight desktop stack for collection, analysis, visualization, and reliable delivery.</p></section>
+    <section class="slide"><div class="eyebrow">Open Source · MIT License</div><h1>Watch trends.<br><span class="accent">See signals.</span></h1><p class="lead">GitHub Trends Watch by Daniel Liezrowice-Zuwasi / ESL</p><p><a href="https://github.com/zuwasi/github_trends" target="_blank" rel="noopener">github.com/zuwasi/github_trends ↗</a></p><div class="footer-note">Built for a clearer view of what the open-source world is building next.</div></section>
+  </main>
+  <button class="nav prev" id="prev" aria-label="Previous slide">‹</button>
+  <button class="nav next" id="next" aria-label="Next slide">›</button>
+  <div class="progress" aria-hidden="true"><div class="progress-fill" id="progress"></div></div>
+  <div class="counter" id="counter" aria-live="polite">1 / 20</div>
+  <script>
+    (() => {
+      const deck = document.getElementById('deck');
+      const slides = [...document.querySelectorAll('.slide')];
+      const prev = document.getElementById('prev');
+      const next = document.getElementById('next');
+      const progress = document.getElementById('progress');
+      const counter = document.getElementById('counter');
+      const hint = document.getElementById('swipeHint');
+      let current = 0;
+      let startX = null;
+
+      function show(index) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        deck.style.transform = `translateX(-${current * 100}vw)`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        counter.textContent = `${current + 1} / ${slides.length}`;
+        prev.hidden = current === 0;
+        next.hidden = current === slides.length - 1;
+        if (current > 0) hint.style.opacity = '0';
+      }
+
+      function finishSwipe(endX) {
+        if (startX === null) return;
+        const distance = endX - startX;
+        if (Math.abs(distance) >= 50) show(current + (distance < 0 ? 1 : -1));
+        startX = null;
+      }
+
+      prev.addEventListener('click', () => show(current - 1));
+      next.addEventListener('click', () => show(current + 1));
+      document.addEventListener('keydown', event => {
+        if (event.key === 'ArrowRight' || event.key === ' ') { event.preventDefault(); show(current + 1); }
+        if (event.key === 'ArrowLeft') { event.preventDefault(); show(current - 1); }
+      });
+      document.addEventListener('touchstart', event => { startX = event.changedTouches[0].clientX; }, {passive:true});
+      document.addEventListener('touchend', event => finishSwipe(event.changedTouches[0].clientX), {passive:true});
+      document.addEventListener('mousedown', event => { startX = event.clientX; });
+      document.addEventListener('mouseup', event => finishSwipe(event.clientX));
+      window.addEventListener('resize', () => show(current));
+      show(0);
+    })();
+  </script>
+</body>
+</html>
