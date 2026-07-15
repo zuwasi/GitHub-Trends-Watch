@@ -49,6 +49,8 @@ class TrendingReporterGUI:
         self._tray_icon = None
         self._in_tray = False
 
+        self._args_overridden = set()  # agent commands whose args were manually cleared/edited
+
         self._build_ui()
         self._load_config_into_ui()
 
@@ -157,7 +159,12 @@ class TrendingReporterGUI:
 
         ttk.Label(frame, text="Prompt args (comma-separated):").grid(row=4, column=0, sticky="w", pady=(10, 0))
         self.agent_args_var = tk.StringVar()
-        ttk.Entry(frame, textvariable=self.agent_args_var, width=50).grid(row=5, column=0, sticky="w")
+        args_frame = ttk.Frame(frame)
+        args_frame.grid(row=5, column=0, sticky="w")
+        ttk.Entry(args_frame, textvariable=self.agent_args_var, width=42).pack(side="left")
+        ttk.Button(args_frame, text="Clear Args", width=10,
+                   command=self._clear_args).pack(side="left", padx=5)
+        self.agent_args_var.trace_add("write", self._on_args_manual_edit)
 
         ttk.Label(frame, text="Agent timeout (seconds):").grid(row=6, column=0, sticky="w", pady=(10, 0))
         self.agent_timeout_var = tk.IntVar(value=300)
@@ -343,7 +350,24 @@ class TrendingReporterGUI:
         if idx < len(self.detected_agents):
             agent = self.detected_agents[idx]
             self.agent_cmd_var.set(agent["command"])
-            self.agent_args_var.set(", ".join(agent["prompt_args"]))
+            # Only auto-fill defaults if user has not manually cleared/edited args
+            if agent["command"] not in self._args_overridden:
+                self.agent_args_var.set(", ".join(agent["prompt_args"]))
+            # If overridden, leave the current (saved/cleared) value untouched
+
+    def _on_args_manual_edit(self, *args):
+        """Mark current agent args as manually overridden when user edits the field."""
+        cmd = self.agent_cmd_var.get()
+        if cmd:
+            self._args_overridden.add(cmd)
+
+    def _clear_args(self):
+        """Clear the prompt args field and mark them as overridden so they do not reappear."""
+        cmd = self.agent_cmd_var.get()
+        self.agent_args_var.set("")
+        if cmd:
+            self._args_overridden.add(cmd)
+        self._log("Prompt args cleared for " + (cmd or "current agent") + ".")
 
     def _check_now(self):
         self._save_config(silent=True)
@@ -387,6 +411,7 @@ class TrendingReporterGUI:
         args_str = self.agent_args_var.get().strip()
         self.config["agent"]["prompt_args"] = [a.strip() for a in args_str.split(",") if a.strip()] if args_str else []
         self.config["agent"]["timeout"] = self.agent_timeout_var.get()
+        self.config["agent"]["args_overridden"] = list(self._args_overridden)
 
         # Set agent name from detected
         for a in self.detected_agents:
@@ -457,6 +482,7 @@ class TrendingReporterGUI:
 
         a = c.get("agent", {})
         self.agent_cmd_var.set(a.get("command", ""))
+        self._args_overridden = set(a.get("args_overridden", []))
         self.agent_args_var.set(", ".join(a.get("prompt_args", [])))
         self.agent_timeout_var.set(a.get("timeout", 300))
 

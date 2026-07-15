@@ -10,7 +10,7 @@ KNOWN_AGENTS = {
     "amp": {
         "display_name": "Amp",
         "command": "amp",
-        "prompt_args": ["--print"],
+        "prompt_args": ["-x"],
         "version_args": ["--version"],
     },
     "claude": {

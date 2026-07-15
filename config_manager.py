@@ -21,7 +21,8 @@ def get_default_config():
             "command": "",
             "prompt_args": [],
             "timeout": 300,
-        },
+            "args_overridden": [],
+       },
         "email": {
             "provider": "gmail",
             "smtp_server": "smtp.gmail.com",
