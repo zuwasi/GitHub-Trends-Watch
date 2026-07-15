@@ -100,10 +100,11 @@ class TrendingReporterGUI:
         interval_combo.grid(row=0, column=1, pady=5, padx=10)
         interval_combo.bind("<<ComboboxSelected>>", self._on_interval_change)
 
-        ttk.Label(frame, text="Every:").grid(row=1, column=0, sticky="w", pady=5)
+        self.every_label = ttk.Label(frame, text="Every:")
+        self.every_label.grid(row=1, column=0, sticky="w", pady=5)
         self.interval_value_var = tk.IntVar(value=1)
-        spin = ttk.Spinbox(frame, from_=1, to=30, textvariable=self.interval_value_var, width=10)
-        spin.grid(row=1, column=1, pady=5, padx=10, sticky="w")
+        self.every_spin = ttk.Spinbox(frame, from_=1, to=30, textvariable=self.interval_value_var, width=10)
+        self.every_spin.grid(row=1, column=1, pady=5, padx=10, sticky="w")
 
         self.interval_label = ttk.Label(frame, text="day(s)")
         self.interval_label.grid(row=1, column=2, sticky="w")
@@ -112,10 +113,12 @@ class TrendingReporterGUI:
         self.time_var = tk.StringVar(value="09:00")
         ttk.Entry(frame, textvariable=self.time_var, width=10).grid(row=2, column=1, pady=5, padx=10, sticky="w")
 
-        ttk.Label(frame, text="Day of week:").grid(row=3, column=0, sticky="w", pady=5)
+        self.dow_label = ttk.Label(frame, text="Day of week:")
+        self.dow_label.grid(row=3, column=0, sticky="w", pady=5)
         self.dow_var = tk.StringVar(value="Monday")
-        ttk.Combobox(frame, textvariable=self.dow_var, state="readonly",
-                     values=DAYS_OF_WEEK, width=15).grid(row=3, column=1, pady=5, padx=10, sticky="w")
+        self.dow_combo = ttk.Combobox(frame, textvariable=self.dow_var, state="readonly",
+                     values=DAYS_OF_WEEK, width=15)
+        self.dow_combo.grid(row=3, column=1, pady=5, padx=10, sticky="w")
 
         # Trending options
         frame2 = ttk.LabelFrame(tab, text="GitHub Trending Options", padding=15)
@@ -288,14 +291,27 @@ class TrendingReporterGUI:
 
     def _on_interval_change(self, event=None):
         itype = self.interval_var.get()
-        if itype == "daily":
+        # Show/hide "Every N" spinbox — only for custom intervals
+        if itype in ("custom_days", "custom_weeks"):
+            self.every_label.grid()
+            self.every_spin.grid()
+            self.interval_label.grid()
+        else:
+            self.every_label.grid_remove()
+            self.every_spin.grid_remove()
+            self.interval_label.grid_remove()
+        # Update unit label
+        if itype in ("daily", "custom_days"):
             self.interval_label.config(text="day(s)")
-        elif itype == "weekly":
+        elif itype in ("weekly", "custom_weeks"):
             self.interval_label.config(text="week(s)")
-        elif itype == "custom_days":
-            self.interval_label.config(text="day(s)")
-        elif itype == "custom_weeks":
-            self.interval_label.config(text="week(s)")
+        # Show/hide "Day of week" — only for weekly
+        if itype == "weekly":
+            self.dow_label.grid()
+            self.dow_combo.grid()
+        else:
+            self.dow_label.grid_remove()
+            self.dow_combo.grid_remove()
 
     def _on_provider_change(self, event=None):
         provider = self.provider_var.get()
