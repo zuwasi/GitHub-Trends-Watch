@@ -16,6 +16,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config_manager import load_config, ensure_dirs
+from single_instance import acquire as acquire_single_instance
 
 
 def setup_logging(verbose=False):
@@ -92,8 +93,22 @@ def main():
     if args.check_now:
         run_check_now()
     elif args.background:
+        if not acquire_single_instance():
+            print('GitHub Trending Reporter is already running. Use --check-now for a one-shot check.')
+            sys.exit(1)
         run_background()
     else:
+        if not acquire_single_instance():
+            import tkinter as tk
+            from tkinter import messagebox
+            root = tk.Tk()
+            root.withdraw()
+            messagebox.showwarning(
+                'GitHub Trends Watch',
+                'GitHub Trends Watch is already running.\n\nCheck the system tray or Task Manager for the active instance.',
+            )
+            root.destroy()
+            sys.exit(0)
         run_gui()
 
 
