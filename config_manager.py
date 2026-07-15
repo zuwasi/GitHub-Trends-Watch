@@ -52,9 +52,10 @@ def get_default_config():
         },
         "app": {
             "minimize_to_tray": True,
+            "run_in_background": True,
             "check_on_startup": False,
-            "history_keep_days": 90,
-        },
+           "history_keep_days": 90,
+       },
     }
 
 

@@ -11,7 +11,26 @@ from agent_detector import detect_agents
 from email_handler import SMTP_PRESETS
 from scheduler import TrendingScheduler
 
+import os
+import sys
+
+try:
+    import pystray
+    from PIL import Image, ImageDraw
+    HAS_TRAY = True
+except ImportError:
+    HAS_TRAY = False
+
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+
+
+def _create_tray_icon_image():
+    """Create a simple tray icon image."""
+    img = Image.new("RGB", (64, 64), "#1a1a2e")
+    draw = ImageDraw.Draw(img)
+    draw.ellipse([12, 12, 52, 52], fill="#58a6ff")
+    draw.text((22, 18), "GT", fill="white")
+    return img
 
 
 class TrendingReporterGUI:
@@ -26,6 +45,8 @@ class TrendingReporterGUI:
         self.config = load_config()
         self.scheduler = TrendingScheduler(self.config, status_callback=self._on_status)
         self.detected_agents = []
+        self._tray_icon = None
+        self._in_tray = False
 
         self._build_ui()
         self._load_config_into_ui()
@@ -230,8 +251,9 @@ class TrendingReporterGUI:
                      values=["en", "es", "fr", "de", "he", "zh", "ja", "pt", "ru", "ar"], width=10).grid(row=3, column=1, pady=5, padx=10, sticky="w")
 
         # App options
-        self.tray_var = tk.BooleanVar(value=True)
-        ttk.Checkbutton(frame2, text="Minimize to system tray", variable=self.tray_var).grid(row=4, column=0, sticky="w", pady=2)
+        self.run_bg_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(frame2, text="Run in background when GUI is closed",
+                        variable=self.run_bg_var).grid(row=4, column=0, sticky="w", pady=2)
 
         self.check_startup_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(frame2, text="Start scheduler on app launch", variable=self.check_startup_var).grid(row=5, column=0, sticky="w", pady=2)
@@ -377,7 +399,7 @@ class TrendingReporterGUI:
         self.config["report"]["report_style"] = self.style_var.get()
         self.config["report"]["language"] = self.report_lang_var.get()
 
-        self.config["app"]["minimize_to_tray"] = self.tray_var.get()
+        self.config["app"]["run_in_background"] = self.run_bg_var.get()
         self.config["app"]["check_on_startup"] = self.check_startup_var.get()
         self.config["app"]["history_keep_days"] = self.history_days_var.get()
 
@@ -438,7 +460,7 @@ class TrendingReporterGUI:
         self.report_lang_var.set(r.get("language", "en"))
 
         app = c.get("app", {})
-        self.tray_var.set(app.get("minimize_to_tray", True))
+        self.run_bg_var.set(app.get("run_in_background", True))
         self.check_startup_var.set(app.get("check_on_startup", False))
         self.history_days_var.set(app.get("history_keep_days", 90))
 
@@ -491,8 +513,77 @@ class TrendingReporterGUI:
     def run(self):
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.mainloop()
+        # Clean up tray icon if still active when mainloop exits
+        self._destroy_tray()
 
     def _on_close(self):
+        run_in_background = self.run_bg_var.get()
+        if run_in_background and HAS_TRAY:
+            # Save config before going to tray
+            self._save_config(silent=True)
+            # Start scheduler if not already running
+            if not self.scheduler.is_running:
+                self.scheduler.reload_config()
+                self.scheduler.start()
+            # Hide window, show tray icon
+            self.root.withdraw()
+            self._create_tray()
+        else:
+            # Full quit
+            self._quit_app()
+
+    def _create_tray(self):
+        """Create the system tray icon."""
+        if self._tray_icon is not None:
+            return
+
+        def on_show(icon, item):
+            self.root.after(0, self._restore_from_tray)
+
+        def on_check_now(icon, item):
+            self.root.after(0, lambda: self.scheduler.check_now())
+
+        def on_quit(icon, item):
+            self.root.after(0, self._quit_app)
+
+        menu = pystray.Menu(
+            pystray.MenuItem("Show GUI", on_show, default=True),
+            pystray.MenuItem("Check Now", on_check_now),
+            pystray.Menu.SEPARATOR,
+            pystray.MenuItem("Quit", on_quit),
+        )
+
+        self._tray_icon = pystray.Icon(
+            "GitHubTrendsWatch",
+            _create_tray_icon_image(),
+            "GitHub Trends Watch",
+            menu,
+        )
+        self._in_tray = True
+
+        # Run tray icon in a separate thread
+        threading.Thread(target=self._tray_icon.run, daemon=True).start()
+
+    def _restore_from_tray(self):
+        """Restore the GUI window from the system tray."""
+        self.root.deiconify()
+        self.root.lift()
+        self.root.focus_force()
+        self._destroy_tray()
+
+    def _destroy_tray(self):
+        """Remove the system tray icon."""
+        if self._tray_icon is not None:
+            try:
+                self._tray_icon.stop()
+            except Exception:
+                pass
+            self._tray_icon = None
+        self._in_tray = False
+
+    def _quit_app(self):
+        """Fully quit the application."""
+        self._destroy_tray()
         if self.scheduler.is_running:
             self.scheduler.stop()
         self.root.destroy()
