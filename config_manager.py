@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import os
 
 CONFIG_DIR = Path.home() / ".github_trending_reporter"
 CONFIG_FILE = CONFIG_DIR / "config.json"
@@ -103,6 +104,11 @@ def save_config(config):
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
+    # Restrict file permissions — config contains SMTP credentials
+    try:
+        os.chmod(CONFIG_FILE, 0o600)
+    except OSError:
+        pass  # Windows may handle permissions differently
 
 
 def validate_config(config):

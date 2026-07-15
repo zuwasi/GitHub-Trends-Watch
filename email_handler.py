@@ -4,6 +4,7 @@ import smtplib
 import base64
 import json
 from datetime import datetime
+from html import escape as html_escape
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -41,7 +42,8 @@ def get_smtp_preset(provider):
 def _markdown_to_html(text):
     """Convert markdown text to HTML."""
     if HAS_MARKDOWN:
-        return md.markdown(text, extensions=["extra", "codehilite", "tables"])
+        # Use "tables" and "fenced_code" but NOT "extra" (which allows inline HTML)
+        return md.markdown(text, extensions=["tables", "fenced_code"], output_format="html5")
     # Fallback: basic conversion
     html = text
     html = html.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -86,9 +88,15 @@ def build_html_email(repos, agent_analysis, charts, config, rated_repos=None, ca
     # Build repo cards
     repo_cards = ""
     for r in repos:
+        # Escape all scraped data to prevent HTML injection (F-002)
+        repo_name = html_escape(r["name"])
+        repo_url = html_escape(r["url"], quote=True)
+        repo_desc = html_escape(r["description"] or "No description available.")
+        repo_lang = html_escape(r["language"]) if r["language"] else ""
+
         lang_badge = ""
         if r["language"]:
-            lang_badge = '<span class="badge lang">' + r["language"] + "</span>"
+            lang_badge = '<span class="badge lang">' + repo_lang + "</span>"
 
         # Rating badges
         rating_badges = ""
@@ -96,26 +104,26 @@ def build_html_email(repos, agent_analysis, charts, config, rated_repos=None, ca
         if rating:
             tier_class = "tier-" + rating["tier"].lower()
             rating_badges = (
-                '<span class="badge ' + tier_class + '">Tier ' + rating["tier"] + "</span>"
+                '<span class="badge ' + tier_class + '">Tier ' + html_escape(rating["tier"]) + "</span>"
                 '<span class="badge score">' + str(rating["overall_score"]) + "/100</span>"
-                '<span class="badge cat">' + rating["category"] + "</span>"
-                '<span class="badge maturity">' + rating["maturity"] + "</span>"
+                '<span class="badge cat">' + html_escape(rating["category"]) + "</span>"
+                '<span class="badge maturity">' + html_escape(rating["maturity"]) + "</span>"
             )
 
         contribs = ""
         if r["contributors"]:
             contribs_html = "".join(
-                '<span class="contrib">' + c + "</span>" for c in r["contributors"][:5]
+                '<span class="contrib">' + html_escape(c) + "</span>" for c in r["contributors"][:5]
             )
             contribs = '<div class="contributors"><span>Built by:</span> ' + contribs_html + "</div>"
 
         repo_cards += f"""
         <div class="repo-card">
             <div class="repo-header">
-                <h3><a href="{r['url']}">{r['name']}</a></h3>
+                <h3><a href="{repo_url}">{repo_name}</a></h3>
                 <span class="rank">#{r['rank']}</span>
             </div>
-            <p class="repo-desc">{r['description'] or 'No description available.'}</p>
+            <p class="repo-desc">{repo_desc}</p>
             <div class="repo-meta">
                 {lang_badge}
                 <span class="badge stars">&#9733; {r['stars']:,}</span>

@@ -272,8 +272,8 @@ Mitigation / owner decision:
 
 | Finding | Priority | Effort | Status |
 ---------|----------|--------|--------|
-| F-001: Plaintext credentials | **High** | Small | TODO — add `os.chmod(0o600)` on save, consider `keyring` library |
-| F-002: HTML injection in email | **High** | Small | TODO — add `html.escape()` to all scraped data in email template |
+| F-001: Plaintext credentials | **High** | Small | Fixed — os.chmod(0o600) on save | — add `os.chmod(0o600)` on save, consider `keyring` library |
+| F-002: HTML injection in email | **High** | Small | Fixed — html.escape() on all scraped data | — add `html.escape()` to all scraped data in email template |
 | F-003: subprocess execution | Accepted | — | Accepted intentional design |
 | F-004: Bare except:pass | Low | Small | TODO — add logging |
 | F-005: Config in .gitignore | Mitigated | — | No change needed |
