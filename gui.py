@@ -353,7 +353,9 @@ class TrendingReporterGUI:
             self.agent_cmd_var.set(agent["command"])
             # Only auto-fill defaults if user has not manually cleared/edited args
             if agent["command"] not in self._args_overridden:
+                self._loading = True
                 self.agent_args_var.set(", ".join(agent["prompt_args"]))
+                self._loading = False
             # If overridden, leave the current (saved/cleared) value untouched
 
     def _on_args_manual_edit(self, *args):

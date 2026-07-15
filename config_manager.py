@@ -98,6 +98,7 @@ def _migrate_config(config):
 
 
 def save_config(config):
+    _migrate_config(config)
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
