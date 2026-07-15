@@ -77,10 +77,24 @@ def load_config():
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 saved = json.load(f)
-            return _deep_merge(default, saved)
+            config = _deep_merge(default, saved)
+            _migrate_config(config)
+            return config
         except (json.JSONDecodeError, IOError):
             pass
     return default
+
+
+def _migrate_config(config):
+    """Migrate old config values to new format.
+
+    - Replace invalid Amp arg '--print' with '-x'.
+    """
+    agent = config.get("agent", {})
+    args = agent.get("prompt_args", [])
+    if "--print" in args:
+        agent["prompt_args"] = ["-x" if a == "--print" else a for a in args]
+        config["agent"] = agent
 
 
 def save_config(config):

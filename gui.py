@@ -48,6 +48,7 @@ class TrendingReporterGUI:
         self.detected_agents = []
         self._tray_icon = None
         self._in_tray = False
+        self._loading = False  # suppress trace callbacks during programmatic loads
 
         self._args_overridden = set()  # agent commands whose args were manually cleared/edited
 
@@ -357,6 +358,8 @@ class TrendingReporterGUI:
 
     def _on_args_manual_edit(self, *args):
         """Mark current agent args as manually overridden when user edits the field."""
+        if self._loading:
+            return
         cmd = self.agent_cmd_var.get()
         if cmd:
             self._args_overridden.add(cmd)
@@ -471,6 +474,7 @@ class TrendingReporterGUI:
         return True
 
     def _load_config_into_ui(self):
+        self._loading = True
         c = self.config
         s = c.get("schedule", {})
         self.interval_var.set(s.get("interval_type", "daily"))
@@ -525,6 +529,7 @@ class TrendingReporterGUI:
         # Auto-detect agents
         self._refresh_agents()
         self._update_history_count()
+        self._loading = False
 
     def _on_status(self, message):
         self.root.after(0, lambda: self._log(message))
