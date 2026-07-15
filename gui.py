@@ -10,6 +10,7 @@ from config_manager import load_config, save_config, validate_config, ensure_dir
 from agent_detector import detect_agents
 from email_handler import SMTP_PRESETS
 from scheduler import TrendingScheduler
+from autostart import enable_autostart, disable_autostart, is_autostart_enabled
 
 import os
 import sys
@@ -261,9 +262,13 @@ class TrendingReporterGUI:
         self.check_startup_var = tk.BooleanVar(value=False)
         ttk.Checkbutton(frame2, text="Start scheduler on app launch", variable=self.check_startup_var).grid(row=5, column=0, sticky="w", pady=2)
 
-        ttk.Label(frame2, text="Keep history (days):").grid(row=6, column=0, sticky="w", pady=5)
+        self.start_on_boot_var = tk.BooleanVar(value=False)
+        ttk.Checkbutton(frame2, text="Start after system restart (auto-launch on boot)",
+                        variable=self.start_on_boot_var).grid(row=6, column=0, sticky="w", pady=2)
+
+        ttk.Label(frame2, text="Keep history (days):").grid(row=7, column=0, sticky="w", pady=5)
         self.history_days_var = tk.IntVar(value=90)
-        ttk.Spinbox(frame2, from_=7, to=365, textvariable=self.history_days_var, width=10).grid(row=6, column=1, pady=5, padx=10, sticky="w")
+        ttk.Spinbox(frame2, from_=7, to=365, textvariable=self.history_days_var, width=10).grid(row=7, column=1, pady=5, padx=10, sticky="w")
 
     def _build_status_tab(self):
         tab = self.tab_status
@@ -417,7 +422,16 @@ class TrendingReporterGUI:
 
         self.config["app"]["run_in_background"] = self.run_bg_var.get()
         self.config["app"]["check_on_startup"] = self.check_startup_var.get()
+        self.config["app"]["start_on_boot"] = self.start_on_boot_var.get()
         self.config["app"]["history_keep_days"] = self.history_days_var.get()
+
+        # Enable or disable system auto-start
+        if self.start_on_boot_var.get():
+            ok, msg = enable_autostart()
+            if not ok:
+                self._log("Auto-start: " + msg)
+        else:
+            disable_autostart()
 
         errors = validate_config(self.config)
         if errors:
@@ -479,6 +493,8 @@ class TrendingReporterGUI:
         self.run_bg_var.set(app.get("run_in_background", True))
         self.check_startup_var.set(app.get("check_on_startup", False))
         self.history_days_var.set(app.get("history_keep_days", 90))
+        # Sync checkbox with actual system state
+        self.start_on_boot_var.set(is_autostart_enabled())
 
         # Auto-detect agents
         self._refresh_agents()
